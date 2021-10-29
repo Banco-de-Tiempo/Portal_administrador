@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de tiempo</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/Banco_Tiempo_Web.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+    <script >
+         // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyCC4Un5aLl3vH87J_5RhrEg_1D9jElTrH0",
+            authDomain: "bancodetiempodeluxe.firebaseapp.com",
+            databaseURL: "https://bancodetiempodeluxe-default-rtdb.firebaseio.com",
+            projectId: "bancodetiempodeluxe",
+            storageBucket: "bancodetiempodeluxe.appspot.com",
+            messagingSenderId: "930893019793",
+            appId: "1:930893019793:web:6715b013d52074523e1d30",
+            measurementId: "G-9ZHT0X5ZQF"
+        };
+        firebase.initializeApp(config);
+
+        // Get a reference to the database service
+        var database = firebase.database();
+
+        function escribeTinota() {
+            correoD = document.getElementById('email').value;
+            correo = correoD.toString();
+
+            contraD = document.getElementById('password').value;
+            contra = contraD.toString();
+
+            firebase.database().ref('admin/').set({
+                email: correo,
+                password: contra
+            });
+            console.log("Listo pai");
+        }
+
+        function cerrarSesion(){
+            firebase.auth().signOut().then(() => {
+                window.location.href='login.html';
+                sessionStorage.setItem('logged', 'false');
+                sessionStorage.setItem('usuario', '');
+            }).catch((error) => {
+                console.log(error);
+            });
+            
+        }
+
+
+        function iniciarSesion(){
+            correoD = document.getElementById('email').value;
+            correo = correoD.toString();
+
+            contraD = document.getElementById('password').value;
+            contra = contraD.toString();
+
+            //Autenticar en firebase
+            firebase.auth().signInWithEmailAndPassword(correo, contra)
+            .then((userCredential) => {
+                //alert("Pasale pai");
+                console.log('Si estas registrado');
+            
+            })
+            .catch((error) => {
+                alert("No estas registrado pai");
+                console.log(error);
+            });
+
+            firebase.auth().onAuthStateChanged( (user) => {
+                if(user){
+                    //Checar si es admin
+                    var usuario = user.uid;
+
+                    var baseDeUsuarios = firebase.database().ref('Users/'+usuario+'/role');
+                    baseDeUsuarios.on( 'value', (snapshot) => {
+                        const miRol = snapshot.val();
+                        
+                        if(miRol == 'admin'){
+                            sessionStorage.setItem('logged', 'true');
+                            sessionStorage.setItem('usuario', usuario);
+                            window.location.href='index.html';
+                            
+                        }else if(miRol == 'user'){
+                            console.log("No eres admin");
+                        }
+                    });
+                }
+                else{
+                    sessionStorage.setItem('logged', 'false');
+                    sessionStorage.setItem('usuario', '');
+                }
+            });
+        }
+    </script>
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <img src="img/logo_banco_tiempo.png" alt="" width="44" height="42" class="d-inline-block align-text-top">
+                    Banco de tiempo
+            </a>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="gestion_user.html">Gestión de Usuarix</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="busqueda_user.html">Búsquedas</a>
+                    </li>
+                </ul>
+            </div>
+            <form class="d-flex">
+                <button class="btn btn-outline-success" type="submit" onclick="cerrarSesion()">Cerrar sesisón</button>
+              </form>
+        </div>
+    </nav>
+</header>
+<body background="img/fondo_banco.jpeg">
+    <div class="admin-msg">
+        <p class="unnamed-character-style-1">¡Bienvenidx Admin!</p>
+        <img src="img/smile.png">
+        <!--<i class="bi bi-emoji-smile" style="font-size: large;"></i>-->
+    </div>
+</body>
+
+</html>
